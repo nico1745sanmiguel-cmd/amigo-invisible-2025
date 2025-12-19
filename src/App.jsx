@@ -10,58 +10,50 @@ function App() {
   const [cargando, setCargando] = useState(true);
   
   const queryParams = new URLSearchParams(window.location.search);
-  const isAdmin = queryParams.get("admin") === "1234"; // Tu clave de admin
+  const isAdmin = queryParams.get("admin") === "1234";
 
-  // Escuchar la base de datos en tiempo real
   useEffect(() => {
     const dbRef = ref(db, 'sorteo/');
     return onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
-      setEstadoLocal({
-        participantes: data?.participantes || [],
-        resultado: data?.resultado || {},
-        vistos: data?.vistos || []
-      });
+      if (data) {
+        setEstadoLocal({
+          participantes: data.participantes || [],
+          resultado: data.resultado || {},
+          vistos: data.vistos || []
+        });
+      }
       setCargando(false);
     });
   }, []);
 
-  const guardarEnNube = (nuevoEstado) => {
-    set(ref(db, 'sorteo/'), nuevoEstado);
-  };
-
   const agregarParticipante = () => {
-    if (nombre.trim() !== "" && !estadoLocal.participantes.includes(nombre.trim())) {
-      const nuevaLista = [...estadoLocal.participantes, nombre.trim()];
-      guardarEnNube({ ...estadoLocal, participantes: nuevaLista });
+    const limpio = nombre.trim();
+    if (limpio !== "" && !estadoLocal.participantes.includes(limpio)) {
+      const nuevaLista = [...estadoLocal.participantes, limpio];
+      // Guardamos directamente en la rama de participantes
+      set(ref(db, 'sorteo/participantes'), nuevaLista);
       setNombre("");
     }
   };
 
-  // Algoritmo de sorteo mejorado (Fisher-Yates)
   const realizarSorteo = () => {
-    if (estadoLocal.participantes.length < 2) return alert("¡Mínimo 2 personas!");
-    
-    let participantes = [...estadoLocal.participantes];
-    let resultado = {};
+    if (estadoLocal.participantes.length < 2) return alert("¡Faltan personas!");
+    let p = [...estadoLocal.participantes];
+    let m = [...p];
     let esValido = false;
 
     while (!esValido) {
-      let pool = [...participantes];
-      // Mezcla
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      // Validar que nadie se regale a sí mismo
-      esValido = participantes.every((p, i) => p !== pool[i]);
-      if (esValido) {
-        participantes.forEach((p, i) => { resultado[p] = pool[i]; });
-      }
+      m.sort(() => Math.random() - 0.5);
+      esValido = p.every((n, i) => n !== m[i]);
     }
 
-    guardarEnNube({ ...estadoLocal, resultado: resultado, vistos: [] });
-    alert("¡Sorteo realizado! Ya pueden avisar al grupo.");
+    const parejas = {};
+    p.forEach((n, i) => { parejas[n] = m[i]; });
+    
+    // Guardamos el resultado en la nube
+    update(ref(db, 'sorteo/'), { resultado: parejas, vistos: [] });
+    alert("¡Sorteo listo! Avisale a tus amigos.");
   };
 
   const marcarComoVisto = (persona) => {
@@ -78,58 +70,49 @@ function App() {
     <div className="container">
       <h1>🎄 Amigo Invisible 🎁</h1>
 
-      {/* --- PANEL ADMIN: Solo si sos admin y NO hay sorteo todavía --- */}
-      {isAdmin && !haySorteo && (
-        <div className="admin-panel">
-          <h3 style={{color: 'red'}}>Estás en Modo Administrador</h3>
-          <input 
-            value={nombre} 
-            onChange={(e) => setNombre(e.target.value)} 
-            onKeyDown={(e) => e.key === 'Enter' && agregarParticipante()}
-            placeholder="Escribí un nombre..." 
-          />
-          <button className="btn-add" onClick={agregarParticipante}>Agregar a la lista</button>
-          <button className="btn-sortear" onClick={realizarSorteo}>¡CERRAR LISTA Y SORTEAR! 🎅</button>
+      {isAdmin && (
+        <div className="admin-panel" style={{background: '#fff3e0', padding: '10px', borderRadius: '10px', marginBottom: '20px', border: '2px solid orange'}}>
+          <p><strong>Panel Admin</strong></p>
+          {!haySorteo && (
+            <>
+              <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre..." />
+              <button className="btn-add" onClick={agregarParticipante}>Agregar (+)</button>
+              <button className="btn-sortear" onClick={realizarSorteo}>¡SORTEAR YA!</button>
+            </>
+          )}
+          <button onClick={() => set(ref(db, 'sorteo/'), {participantes:[], resultado:{}, vistos:[]})} style={{background: 'red', color: 'white', marginTop: '10px'}}>REINICIAR TODO</button>
         </div>
       )}
 
-      {/* --- VISTA DE PARTICIPANTES --- */}
       {!haySorteo ? (
         <div className="waiting-screen">
           <h3>¡Bienvenidos! 👋</h3>
-          <p>El organizador está anotando a todos. Cuando termine, aparecerán los regalos acá.</p>
-          <p><strong>Ya están anotados:</strong></p>
-          <div style={{display: 'flex', flexWrap: 'wrap', gap: '5px', justifyContent: 'center'}}>
+          <p>Ya están anotados para jugar:</p>
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center'}}>
             {estadoLocal.participantes.map((p, i) => (
-              <span key={i} style={{background: '#eee', padding: '5px 10px', borderRadius: '15px', fontSize: '0.9rem'}}>
-                ✅ {p}
+              <span key={i} style={{background: 'white', padding: '5px 15px', borderRadius: '20px', border: '2px solid var(--xmas-green)'}}>
+                {p}
               </span>
             ))}
           </div>
-          {estadoLocal.participantes.length === 0 && <p>Todavía no hay nadie en la lista...</p>}
+          <p style={{marginTop: '20px', fontStyle: 'italic'}}>Esperando que el organizador haga el sorteo... 🎅</p>
         </div>
       ) : (
-        /* EL SORTEO YA SE HIZO: Mostramos los botones */
         <div>
-          <h3>🎉 ¡Sorteo listo! 🎉</h3>
-          <p>Buscá tu nombre y descubrí a quién le regalás:</p>
+          <h3>🎉 ¡Busca tu nombre! 🎉</h3>
           <div className="cards-container">
             {estadoLocal.participantes
               .filter(p => !(estadoLocal.vistos || []).includes(p))
               .map(p => (
                 <button key={p} className="secret-card-btn" onClick={() => setVerPara(p)}>
-                  {p} 🎁
+                  {p} <br/> 🎁
                 </button>
               ))
             }
           </div>
-          {estadoLocal.vistos?.length === estadoLocal.participantes.length && (
-             <p style={{marginTop: '20px'}}>🎊 ¡Todos ya descubrieron a su amigo invisible! 🎊</p>
-          )}
         </div>
       )}
 
-      {/* VENTANA DE REVELACIÓN */}
       {verPara && (
         <div className="revelation-box">
           <h2>Hola {verPara},</h2>
@@ -139,16 +122,6 @@ function App() {
             LISTO, YA LO MEMORICÉ 🙈
           </button>
         </div>
-      )}
-
-      {/* REINICIAR (Solo Admin) */}
-      {isAdmin && (
-        <button 
-          onClick={() => window.confirm("¿Borrar todo y empezar de cero?") && guardarEnNube({participantes:[], resultado:{}, vistos:[]})} 
-          style={{marginTop: '50px', background: 'none', border: '1px solid #ccc', color: '#999', fontSize: '0.7rem', cursor: 'pointer'}}
-        >
-          BORRAR TODO EL SORTEO
-        </button>
       )}
     </div>
   );

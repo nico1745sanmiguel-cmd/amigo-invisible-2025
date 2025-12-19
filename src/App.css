@@ -1,173 +1,22 @@
-/* --- Paleta de Colores Craft & Xmas --- */
-:root {
-  --craft-paper: #f4e4d0; /* Color papel madera */
-  --xmas-red: #d32f2f;
-  --xmas-green: #2e7d32;
-  --dark-ink: #3e2723;   /* Color café oscuro para textos */
-  --shadow: 4px 4px 0px rgba(0,0,0,0.15);
-}
-
-/* --- Base del sitio --- */
-body {
-  background-color: var(--xmas-red);
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  margin: 0;
-  padding: 15px;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-/* --- Contenedor Principal (La Tarjeta) --- */
-.container {
-  background-color: var(--craft-paper);
-  border: 4px dashed var(--dark-ink);
-  border-radius: 20px;
-  padding: 20px;
-  width: 100%;
-  max-width: 450px; /* Tamaño ideal para celulares */
-  box-shadow: var(--shadow);
-  text-align: center;
-  color: var(--dark-ink);
-  margin-top: 10px;
-}
-
-h1 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  color: var(--xmas-red);
-  text-transform: uppercase;
-  letter-spacing: -1px;
-}
-
-p {
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-/* --- Inputs (CORREGIDO: Ahora el texto se ve) --- */
-input {
-  width: 100%;
-  padding: 18px; /* Más grande para celular */
-  margin-bottom: 10px;
-  border-radius: 12px;
-  border: 3px solid var(--dark-ink);
-  font-size: 1.2rem;
-  background-color: #ffffff;
-  color: #1a1a1a; /* Texto negro bien legible */
-  box-sizing: border-box;
-}
-
-input::placeholder {
-  color: #888;
-}
-
-/* --- Botones --- */
-button {
-  width: 100%;
-  padding: 16px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  border: 3px solid var(--dark-ink);
-  font-size: 1.1rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.1s, background-color 0.2s;
-  box-shadow: 3px 3px 0px var(--dark-ink);
-  font-family: inherit;
-}
-
-button:active {
-  transform: translate(2px, 2px);
-  box-shadow: none;
-}
-
-.btn-add {
-  background-color: #ffca28; /* Amarillo ámbar */
-  color: var(--dark-ink);
-}
-
-.btn-sortear {
-  background-color: var(--xmas-green);
-  color: white;
-  font-size: 1.3rem;
-  margin-top: 15px;
-  border-color: #1b5e20;
-}
-
-/* --- Lista de Nombres Agregados --- */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 15px 0;
-}
-
-li {
-  background: rgba(255, 255, 255, 0.5);
-  margin-bottom: 6px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--dark-ink);
-  display: flex;
-  justify-content: space-between;
-}
-
-/* --- Grilla de "Sobres" (Cuando ya se sorteó) --- */
-.cards-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Dos columnas en celular */
-  gap: 12px;
-  margin-top: 20px;
-}
-
 .secret-card-btn {
-  height: 90px;
-  padding: 5px;
+  height: 120px; /* Más alto */
+  padding: 10px;
   background: repeating-linear-gradient(
     45deg,
-    #fff,
-    #fff 10px,
-    var(--xmas-red) 10px,
-    var(--xmas-red) 20px
-  ); /* Estilo caramelo */
-  color: var(--dark-ink);
-  font-size: 1rem;
+    var(--xmas-red),
+    var(--xmas-red) 15px,
+    #b71c1c 15px,
+    #b71c1c 30px
+  ); /* Rojo oscuro y brillante para que resalte el texto */
+  color: white; /* TEXTO BLANCO */
+  font-size: 1.5rem; /* NOMBRES GRANDES */
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra para que se lea mejor */
+  border: 4px solid white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
-}
-
-/* --- Caja de Revelación (El nombre del amigo) --- */
-.revelation-box {
-  margin-top: 25px;
-  background: white;
-  border: 5px double var(--xmas-green);
-  padding: 20px;
-  border-radius: 15px;
-  animation: fadeIn 0.4s ease;
-}
-
-.gift-name {
-  font-size: 2.2rem;
-  color: var(--xmas-red);
-  font-weight: 900;
-  margin: 15px 0;
-  background: #fff3e0;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.btn-hide {
-  background-color: #eceff1;
-  color: #455a64;
-  font-size: 0.9rem;
-  box-shadow: 2px 2px 0px #90a4ae;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  box-shadow: 6px 6px 0px var(--dark-ink);
 }
